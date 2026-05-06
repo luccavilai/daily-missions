@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "Daily",
   description: "Una app diaria para Fran y Lucca",
   icons: {
-    icon: "/favicon.svg",
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
   },
 };
 

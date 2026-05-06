@@ -1,6 +1,29 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" fill="#0a1929" rx="6"/>
-  <text x="50%" y="50%" dominant-baseline="central" text-anchor="middle"
-    font-family="Georgia, serif" font-style="italic" font-size="38" font-weight="500"
-    fill="#f5ecd9">D</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Daily">
+  <defs>
+    <linearGradient id="bg" x1="32" y1="6" x2="32" y2="58" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#112236"/>
+      <stop offset="1" stop-color="#0a1929"/>
+    </linearGradient>
+    <linearGradient id="sun" x1="32" y1="16" x2="32" y2="38" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#e8dcc0"/>
+      <stop offset="0.55" stop-color="#c9a961"/>
+      <stop offset="1" stop-color="#b08d4a"/>
+    </linearGradient>
+  </defs>
+  <!-- Fondo -->
+  <rect width="64" height="64" rx="14" ry="14" fill="url(#bg)"/>
+  <!-- Marco sutil crema -->
+  <rect x="4" y="4" width="56" height="56" rx="11" ry="11" fill="none" stroke="rgba(245,236,217,0.14)" stroke-width="1"/>
+  <!-- Horizonte / tarjeta del día -->
+  <path fill="rgba(245,236,217,0.06)" stroke="rgba(245,236,217,0.12)" stroke-width="0.75"
+        d="M12 43h40v7a3 3 0 01-3 3H15a3 3 0 01-3-3z"/>
+  <!-- Marcador tipo “día actual” -->
+  <rect x="18" y="22" width="3" height="22" rx="1" fill="#c9a961"/>
+  <!-- Líneas de contenido (ritual diario) -->
+  <rect x="25" y="24" width="22" height="2" rx="1" fill="rgba(245,236,217,0.45)"/>
+  <rect x="25" y="30" width="17" height="2" rx="1" fill="rgba(201,169,97,0.85)"/>
+  <rect x="25" y="36" width="20" height="2" rx="1" fill="rgba(245,236,217,0.28)"/>
+  <!-- Sol sobre el “día” -->
+  <circle cx="43" cy="19" r="7.5" fill="url(#sun)"/>
+  <circle cx="40.8" cy="16.9" r="1.85" fill="rgba(248,246,239,0.45)"/>
 </svg>
