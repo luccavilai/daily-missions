@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { content, getContentByDate, type DayContent } from "@/lib/content";
-import styles from "./calendar.module.css";
+import styles from "./page.module.css";
 
 const MESES = [
   "enero",
