@@ -104,8 +104,7 @@ function CardWYR({
   wyr: { a: string; b: string };
   dateKey: string;
 }) {
-  const [saved, setSaved] = useState<"a" | "b" | null>(null);
-  const [draft, setDraft] = useState<"a" | "b" | null>(null);
+  const [choice, setChoice] = useState<"a" | "b" | null>(null);
 
   useEffect(() => {
     const key = `${WYR_CHOICE_PREFIX}${dateKey}`;
@@ -117,23 +116,14 @@ function CardWYR({
         v = mig;
       }
     }
-    if (v === "a" || v === "b") {
-      setSaved(v);
-      setDraft(v);
-    } else {
-      setSaved(null);
-      setDraft(null);
-    }
+    setChoice(v === "a" || v === "b" ? v : null);
   }, [dateKey]);
 
-  const persist = () => {
-    if (draft !== "a" && draft !== "b") return;
-    localStorage.setItem(`${WYR_CHOICE_PREFIX}${dateKey}`, draft);
-    setSaved(draft);
+  const pick = (c: "a" | "b") => {
+    const key = `${WYR_CHOICE_PREFIX}${dateKey}`;
+    localStorage.setItem(key, c);
+    setChoice(c);
   };
-
-  const dirty =
-    (draft === "a" || draft === "b") && draft !== saved;
 
   return (
     <article className={styles.card}>
@@ -145,8 +135,8 @@ function CardWYR({
       <div className={styles.wyrOptions}>
         <button
           type="button"
-          className={`${styles.wyrChoiceBtn} ${draft === "a" ? styles.wyrChoiceBtnActive : ""} ${saved === "a" ? styles.wyrChoiceBtnSaved : ""}`}
-          onClick={() => setDraft("a")}
+          className={`${styles.wyrChoiceBtn} ${choice === "a" ? styles.wyrChoiceBtnActive : ""}`}
+          onClick={() => pick("a")}
         >
           <span className={styles.wyrBadge}>A</span>
           <p className={styles.wyrChoiceText}>{wyr.a}</p>
@@ -158,26 +148,12 @@ function CardWYR({
 
         <button
           type="button"
-          className={`${styles.wyrChoiceBtn} ${draft === "b" ? styles.wyrChoiceBtnActive : ""} ${saved === "b" ? styles.wyrChoiceBtnSaved : ""}`}
-          onClick={() => setDraft("b")}
+          className={`${styles.wyrChoiceBtn} ${choice === "b" ? styles.wyrChoiceBtnActive : ""}`}
+          onClick={() => pick("b")}
         >
           <span className={styles.wyrBadge}>B</span>
           <p className={styles.wyrChoiceText}>{wyr.b}</p>
         </button>
-      </div>
-
-      <div className={styles.wyrActions}>
-        <button
-          type="button"
-          className={styles.wyrSaveBtn}
-          disabled={!dirty}
-          onClick={persist}
-        >
-          Guardar elección
-        </button>
-        {saved !== null ? (
-          <span className={styles.wyrSavedHint}>Guardado</span>
-        ) : null}
       </div>
     </article>
   );
