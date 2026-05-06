@@ -3,15 +3,10 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getContentByDate, type DayContent } from "@/lib/content";
+import { getCalendarDateArgentina } from "@/lib/tz-argentina";
 import styles from "./page.module.css";
 
-function getTodayString(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
+const WYR_CHOICE_PREFIX = "wyr-choice-";
 
 function formatDate(dateStr: string): string {
   const [y, m, d] = dateStr.split("-").map(Number);
@@ -48,7 +43,7 @@ export default function HomePage() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const t = getTodayString();
+    const t = getCalendarDateArgentina();
     setToday(t);
     setContent(getContentByDate(t));
     setMounted(true);
@@ -77,8 +72,8 @@ export default function HomePage() {
       {content ? (
         <div className={styles.cards}>
           <CardWYR wyr={content.wyr} dateKey={today} />
-          <CardChallenge challenge={content.challenge} dateKey={today} />
-          <CardFact fact={content.fact} dateKey={today} />
+          <CardChallenge challenge={content.challenge} />
+          <CardFact fact={content.fact} />
         </div>
       ) : (
         <div className={styles.empty}>
@@ -94,7 +89,13 @@ export default function HomePage() {
   );
 }
 
-// ============ Cards ============
+function migrateOldWyrKeys(dateKey: string): "a" | "b" | null {
+  const legacyL = localStorage.getItem(`wyr-${dateKey}-lucca`);
+  const legacyF = localStorage.getItem(`wyr-${dateKey}-fran`);
+  if (legacyL === "a" || legacyL === "b") return legacyL;
+  if (legacyF === "a" || legacyF === "b") return legacyF;
+  return null;
+}
 
 function CardWYR({
   wyr,
@@ -103,29 +104,36 @@ function CardWYR({
   wyr: { a: string; b: string };
   dateKey: string;
 }) {
-  const [pickLucca, setPickLucca] = useState<"a" | "b" | null>(null);
-  const [pickFran, setPickFran] = useState<"a" | "b" | null>(null);
+  const [saved, setSaved] = useState<"a" | "b" | null>(null);
+  const [draft, setDraft] = useState<"a" | "b" | null>(null);
 
   useEffect(() => {
-    const l = localStorage.getItem(`wyr-${dateKey}-lucca`);
-    const f = localStorage.getItem(`wyr-${dateKey}-fran`);
-    if (l === "a" || l === "b") setPickLucca(l);
-    if (f === "a" || f === "b") setPickFran(f);
+    const key = `${WYR_CHOICE_PREFIX}${dateKey}`;
+    let v = localStorage.getItem(key);
+    if (v !== "a" && v !== "b") {
+      const mig = migrateOldWyrKeys(dateKey);
+      if (mig) {
+        localStorage.setItem(key, mig);
+        v = mig;
+      }
+    }
+    if (v === "a" || v === "b") {
+      setSaved(v);
+      setDraft(v);
+    } else {
+      setSaved(null);
+      setDraft(null);
+    }
   }, [dateKey]);
 
-  const select = (who: "lucca" | "fran", choice: "a" | "b") => {
-    if (who === "lucca") {
-      const next = pickLucca === choice ? null : choice;
-      setPickLucca(next);
-      if (next) localStorage.setItem(`wyr-${dateKey}-lucca`, next);
-      else localStorage.removeItem(`wyr-${dateKey}-lucca`);
-    } else {
-      const next = pickFran === choice ? null : choice;
-      setPickFran(next);
-      if (next) localStorage.setItem(`wyr-${dateKey}-fran`, next);
-      else localStorage.removeItem(`wyr-${dateKey}-fran`);
-    }
+  const persist = () => {
+    if (draft !== "a" && draft !== "b") return;
+    localStorage.setItem(`${WYR_CHOICE_PREFIX}${dateKey}`, draft);
+    setSaved(draft);
   };
+
+  const dirty =
+    (draft === "a" || draft === "b") && draft !== saved;
 
   return (
     <article className={styles.card}>
@@ -135,79 +143,47 @@ function CardWYR({
       </div>
 
       <div className={styles.wyrOptions}>
-        <div className={styles.wyrOption}>
-          <p className={styles.wyrText}>{wyr.a}</p>
-          <div className={styles.wyrPickers}>
-            <button
-              className={`${styles.picker} ${pickLucca === "a" ? styles.pickerActive : ""}`}
-              onClick={() => select("lucca", "a")}
-            >
-              Lucca
-            </button>
-            <button
-              className={`${styles.picker} ${pickFran === "a" ? styles.pickerActive : ""}`}
-              onClick={() => select("fran", "a")}
-            >
-              Fran
-            </button>
-          </div>
-        </div>
+        <button
+          type="button"
+          className={`${styles.wyrChoiceBtn} ${draft === "a" ? styles.wyrChoiceBtnActive : ""} ${saved === "a" ? styles.wyrChoiceBtnSaved : ""}`}
+          onClick={() => setDraft("a")}
+        >
+          <span className={styles.wyrBadge}>A</span>
+          <p className={styles.wyrChoiceText}>{wyr.a}</p>
+        </button>
 
         <div className={styles.wyrDivider}>
           <span className={styles.wyrOr}>o</span>
         </div>
 
-        <div className={styles.wyrOption}>
-          <p className={styles.wyrText}>{wyr.b}</p>
-          <div className={styles.wyrPickers}>
-            <button
-              className={`${styles.picker} ${pickLucca === "b" ? styles.pickerActive : ""}`}
-              onClick={() => select("lucca", "b")}
-            >
-              Lucca
-            </button>
-            <button
-              className={`${styles.picker} ${pickFran === "b" ? styles.pickerActive : ""}`}
-              onClick={() => select("fran", "b")}
-            >
-              Fran
-            </button>
-          </div>
-        </div>
+        <button
+          type="button"
+          className={`${styles.wyrChoiceBtn} ${draft === "b" ? styles.wyrChoiceBtnActive : ""} ${saved === "b" ? styles.wyrChoiceBtnSaved : ""}`}
+          onClick={() => setDraft("b")}
+        >
+          <span className={styles.wyrBadge}>B</span>
+          <p className={styles.wyrChoiceText}>{wyr.b}</p>
+        </button>
+      </div>
+
+      <div className={styles.wyrActions}>
+        <button
+          type="button"
+          className={styles.wyrSaveBtn}
+          disabled={!dirty}
+          onClick={persist}
+        >
+          Guardar elección
+        </button>
+        {saved !== null ? (
+          <span className={styles.wyrSavedHint}>Guardado</span>
+        ) : null}
       </div>
     </article>
   );
 }
 
-function CardChallenge({
-  challenge,
-  dateKey,
-}: {
-  challenge: string;
-  dateKey: string;
-}) {
-  const [doneLucca, setDoneLucca] = useState(false);
-  const [doneFran, setDoneFran] = useState(false);
-
-  useEffect(() => {
-    setDoneLucca(localStorage.getItem(`ch-${dateKey}-lucca`) === "1");
-    setDoneFran(localStorage.getItem(`ch-${dateKey}-fran`) === "1");
-  }, [dateKey]);
-
-  const toggle = (who: "lucca" | "fran") => {
-    if (who === "lucca") {
-      const next = !doneLucca;
-      setDoneLucca(next);
-      if (next) localStorage.setItem(`ch-${dateKey}-lucca`, "1");
-      else localStorage.removeItem(`ch-${dateKey}-lucca`);
-    } else {
-      const next = !doneFran;
-      setDoneFran(next);
-      if (next) localStorage.setItem(`ch-${dateKey}-fran`, "1");
-      else localStorage.removeItem(`ch-${dateKey}-fran`);
-    }
-  };
-
+function CardChallenge({ challenge }: { challenge: string }) {
   return (
     <article className={styles.card}>
       <div className={styles.cardLabel}>
@@ -216,33 +192,14 @@ function CardChallenge({
       </div>
 
       <p className={styles.challengeText}>{challenge}</p>
-
-      <div className={styles.checkRow}>
-        <button
-          className={`${styles.check} ${doneLucca ? styles.checkActive : ""}`}
-          onClick={() => toggle("lucca")}
-        >
-          <span className={styles.checkBox}>{doneLucca ? "×" : ""}</span>
-          <span className={styles.checkLabel}>Lucca</span>
-        </button>
-        <button
-          className={`${styles.check} ${doneFran ? styles.checkActive : ""}`}
-          onClick={() => toggle("fran")}
-        >
-          <span className={styles.checkBox}>{doneFran ? "×" : ""}</span>
-          <span className={styles.checkLabel}>Fran</span>
-        </button>
-      </div>
     </article>
   );
 }
 
 function CardFact({
   fact,
-  dateKey,
 }: {
   fact: { text: string; hook: string };
-  dateKey: string;
 }) {
   return (
     <article className={styles.card}>

@@ -167,9 +167,31 @@
   cursor: pointer;
 }
 
-.cellAvailable:hover {
+.cellAvailable:hover:not(:disabled) {
   border-color: var(--color-cream-line);
   background: rgba(245, 236, 217, 0.04);
+}
+
+.cellLocked {
+  cursor: not-allowed;
+  opacity: 0.55;
+  color: var(--color-cream-dim);
+  border: 1px dashed var(--color-cream-line);
+}
+
+.cellLocked:disabled {
+  opacity: 0.55;
+}
+
+.cellLockGlyph {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  line-height: 1;
+  opacity: 0.9;
+  pointer-events: none;
 }
 
 .cellToday {

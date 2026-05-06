@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { content, getContentByDate, type DayContent } from "@/lib/content";
+import { getCalendarDateArgentina } from "@/lib/tz-argentina";
 import styles from "./page.module.css";
 
 const MESES = [
@@ -22,11 +23,6 @@ const MESES = [
 
 const DIAS_SEMANA = ["L", "M", "X", "J", "V", "S", "D"];
 
-function getTodayString(): string {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-}
-
 function pad(n: number): string {
   return String(n).padStart(2, "0");
 }
@@ -41,7 +37,7 @@ export default function CalendarPage() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const t = getTodayString();
+    const t = getCalendarDateArgentina();
     setToday(t);
     setSelected(t);
     setMounted(true);
@@ -126,17 +122,23 @@ export default function CalendarPage() {
           if (day === null) return <div key={i} className={styles.cellEmpty}></div>;
           const dateStr = `${viewMonth.year}-${pad(viewMonth.month + 1)}-${pad(day)}`;
           const has = availableDates.has(dateStr);
+          const isFuture = dateStr > today;
+          const unlocked = has && !isFuture;
+          const lockedFuture = has && isFuture;
           const isToday = dateStr === today;
           const isSelected = dateStr === selected;
           return (
             <button
               key={i}
-              className={`${styles.cell} ${has ? styles.cellAvailable : ""} ${isToday ? styles.cellToday : ""} ${isSelected ? styles.cellSelected : ""}`}
-              onClick={() => has && setSelected(dateStr)}
-              disabled={!has}
+              type="button"
+              title={lockedFuture ? "Se desbloquea ese día" : undefined}
+              className={`${styles.cell} ${unlocked ? styles.cellAvailable : ""} ${lockedFuture ? styles.cellLocked : ""} ${isToday ? styles.cellToday : ""} ${isSelected ? styles.cellSelected : ""}`}
+              onClick={() => unlocked && setSelected(dateStr)}
+              disabled={!unlocked}
             >
               {day}
-              {has && !isSelected && <span className={styles.dot}></span>}
+              {unlocked && !isSelected && <span className={styles.dot}></span>}
+              {lockedFuture && <span className={styles.cellLockGlyph} aria-hidden>🔒</span>}
             </button>
           );
         })}
@@ -147,7 +149,7 @@ export default function CalendarPage() {
           <DayPreview content={dayContent} />
         ) : (
           <p className={styles.previewEmpty}>
-            Seleccioná un día con contenido para ver lo que tocó.
+            Seleccioná un día ya desbloqueado (pasado u hoy) con contenido.
           </p>
         )}
       </section>
