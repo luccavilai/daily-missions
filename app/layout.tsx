@@ -1,6 +1,9 @@
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
 
+/** Evita HTML estático cacheado (PWA / Safari) con JS viejo que aún mostraba “Guardar elección”. */
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Daily",
   description: "Una app diaria para Fran y Lucca",

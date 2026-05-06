@@ -138,7 +138,6 @@ function CardWYR({
           className={`${styles.wyrChoiceBtn} ${choice === "a" ? styles.wyrChoiceBtnActive : ""}`}
           onClick={() => pick("a")}
         >
-          <span className={styles.wyrBadge}>A</span>
           <p className={styles.wyrChoiceText}>{wyr.a}</p>
         </button>
 
@@ -151,7 +150,6 @@ function CardWYR({
           className={`${styles.wyrChoiceBtn} ${choice === "b" ? styles.wyrChoiceBtnActive : ""}`}
           onClick={() => pick("b")}
         >
-          <span className={styles.wyrBadge}>B</span>
           <p className={styles.wyrChoiceText}>{wyr.b}</p>
         </button>
       </div>
